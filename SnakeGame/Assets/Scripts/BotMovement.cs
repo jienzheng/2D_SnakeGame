@@ -1,11 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class BotMovement : MonoBehaviour
 {
     public float moveSpeed = 5f;                  // Movement speed of the bot
-    public Transform spawnPoint;                  // The point where the bot respawns
+    public Transform[] spawnPoints;               // Array of potential spawn points
     public GameObject bodyPrefab;                 // Prefab for each body part of the bot snake
     private Camera mainCamera;                    // Reference to the main camera for boundary checks
 
@@ -14,6 +15,7 @@ public class BotMovement : MonoBehaviour
     private bool isRespawning = false;            // Flag to prevent multiple respawn attempts
     private float respawnCooldown = 2f;           // Delay in seconds between respawns
     private int bodySpacing = 10;                 // Controls the distance between body parts
+    private const int maxBodyParts = 10;          // Maximum number of body segments allowed
 
     [SerializeField] private float viewportMargin = 0.05f;   // Margin for camera boundary check
 
@@ -21,13 +23,17 @@ public class BotMovement : MonoBehaviour
     {
         mainCamera = Camera.main;
 
-        if (spawnPoint == null)
+        if (spawnPoints.Length == 0)
         {
-            Debug.LogWarning("Spawn point is not set for the bot.");
+            Debug.LogWarning("No spawn points are set for the bot.");
+            return;
         }
 
         // Start with one initial body part
         AddBodyPart();
+
+        // Spawn the bot at a random spawn point initially
+        Respawn();
     }
 
     void Update()
@@ -69,12 +75,16 @@ public class BotMovement : MonoBehaviour
 
     private void AddBodyPart()
     {
-        // Instantiate a new body part and add it to the list of body parts
-        if (bodyPrefab != null)
+        // Only add a new body part if we haven't reached the maximum limit
+        if (bodyParts.Count < maxBodyParts && bodyPrefab != null)
         {
             GameObject body = Instantiate(bodyPrefab, transform.position, Quaternion.identity);
             body.tag = "BotSegment"; // Tag the body part for collision detection
             bodyParts.Add(body);
+        }
+        else if (bodyParts.Count >= maxBodyParts)
+        {
+            Debug.Log("Maximum body parts reached; no additional body segments will be added.");
         }
         else
         {
@@ -95,7 +105,6 @@ public class BotMovement : MonoBehaviour
 
     private IEnumerator RespawnWithCooldown()
     {
-        // Set the respawning flag to prevent multiple respawn attempts
         isRespawning = true;
         Respawn(); // Call the respawn function
 
@@ -109,19 +118,20 @@ public class BotMovement : MonoBehaviour
         // Increase the spacing between body parts slightly on each respawn
         bodySpacing += 5;
         
-        // Add only one new body part on respawn
+        // Add only one new body part on respawn if the limit hasn’t been reached
         AddBodyPart();
 
-        // Set the bot's position and rotation to the spawn point location
-        if (spawnPoint != null)
+        // Randomly select a spawn point from the array of spawn points
+        if (spawnPoints.Length > 0)
         {
-            transform.position = spawnPoint.position;
-            transform.rotation = spawnPoint.rotation;
-            Debug.Log("Bot respawned at spawn point.");
+            int randomIndex = Random.Range(0, spawnPoints.Length);
+            transform.position = spawnPoints[randomIndex].position;
+            transform.rotation = spawnPoints[randomIndex].rotation;
+            Debug.Log($"Bot respawned at spawn point {randomIndex}.");
         }
         else
         {
-            Debug.LogWarning("No spawn point assigned for the bot.");
+            Debug.LogWarning("No spawn points are assigned for the bot.");
         }
 
         UpdateBodyPartsPosition();
@@ -135,6 +145,25 @@ public class BotMovement : MonoBehaviour
             GameObject body = bodyParts[i];
             Vector3 point = positionsHistory[Mathf.Min(i * bodySpacing, positionsHistory.Count - 1)];
             body.transform.position = point;
+        }
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Wall"))
+        {
+            Debug.Log("Bot hit the wall!");
+
+            // Respawn or end the game based on your desired behavior
+            if (!isRespawning)
+            {
+                StartCoroutine(RespawnWithCooldown());
+            }
+        }
+        else if (other.CompareTag("PlayerSnake"))
+        {
+            Debug.Log("Player hit the bot! Game Over.");
+            SceneManager.LoadScene(2); // Load the Game Over scene
         }
     }
 }
