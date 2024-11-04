@@ -25,9 +25,9 @@ public class RandSpawner : MonoBehaviour
         itemProbabilities = new Dictionary<GameObject, float>
         {
             { mapItemPrefab, 0.25f },
-            { bootItemPrefab, 0.25f },
-            { yarnItemPrefab, 0.25f },
-            { shrinkerItemPrefab, 0.25f }
+            { bootItemPrefab, 0.45f },
+            { yarnItemPrefab, 0.15f },
+            { shrinkerItemPrefab, 0.15f }
         };
 
         // Start the coroutine for periodic item spawning

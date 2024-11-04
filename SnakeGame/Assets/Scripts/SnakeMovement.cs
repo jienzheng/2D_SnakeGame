@@ -137,7 +137,7 @@ public class SnakeMovement : MonoBehaviour
         else if (other.CompareTag("YarnItem"))
         {
             // Decrease speed and play sound
-            moveSpeed = Mathf.Max(1, moveSpeed - 0.2f);
+            moveSpeed = Mathf.Max(1, moveSpeed - 0.6f);
             audioSource.PlayOneShot(specialItemSound);
             Debug.Log("Collected YarnItem: Speed decreased.");
             Destroy(other.gameObject);
