@@ -10,16 +10,22 @@ public class SnakeMovement : MonoBehaviour
     public float BodySpeed = 1f;
     public GameObject BodyPrefab;
     public AppleSpawner appleSpawner;
+    public ScoreCounter scoreCounter; // Reference to ScoreCounter script
 
     private List<GameObject> BodyParts = new List<GameObject>();
     private List<Vector3> PositionsHistory = new List<Vector3>();
 
-    // Camera boundaries
     private float xMin, xMax, zMin, zMax;
 
     void Start()
     {
-        CalculateCameraBounds(); // Calculate the camera boundaries based on the camera position
+        CalculateCameraBounds(); 
+        GrowSnake();
+        if (scoreCounter != null)
+        {
+            scoreCounter.score = 0; // Initialize the score to 0
+            scoreCounter.UpdateScoreText(); // Update the displayed score
+        }
     }
 
     void Update()
@@ -33,7 +39,8 @@ public class SnakeMovement : MonoBehaviour
         PositionsHistory.Insert(0, transform.position);
 
         int index = 0;
-        foreach (var body in BodyParts) {
+        foreach (var body in BodyParts)
+        {
             Vector3 point = PositionsHistory[Mathf.Min(index * Gap, PositionsHistory.Count - 1)];
             Vector3 moveDirection = point - body.transform.position;
             body.transform.position += moveDirection * BodySpeed;
@@ -45,20 +52,44 @@ public class SnakeMovement : MonoBehaviour
         KeepWithinCameraBounds();
     }
 
-    private void GrowSnake() {
+    private void GrowSnake()
+    {
         GameObject body = Instantiate(BodyPrefab);
         BodyParts.Add(body);
     }
+
+    private bool hasEatenApple = false;
+
     private void OnTriggerEnter(Collider other)
     {
-        if (other.gameObject.CompareTag("Food")) // Check if the collided object is tagged as "Apple"
+        if (other.gameObject.CompareTag("Food") && !hasEatenApple)
         {
+            hasEatenApple = true; // Prevent multiple calls
             appleSpawner.RemoveApple(); // Remove the eaten apple and spawn a new one
             GrowSnake(); // Grow the snake by one body part
+            IncreaseScore(); // Add points to the score
+
+            // Reset the flag after a short delay to avoid double-counting
+            StartCoroutine(ResetEatenAppleFlag());
         }
     }
 
-    // Calculate camera bounds based on the main orthographic camera
+    private void IncreaseScore()
+    {
+        if (scoreCounter != null)
+        {
+            scoreCounter.score += 50; // Increase score by 50
+            scoreCounter.UpdateScoreText(); // Update the displayed score
+            HighScore.TRY_SET_HIGH_SCORE(scoreCounter.score); // Update high score if applicable
+        }
+    }
+
+    private IEnumerator ResetEatenAppleFlag()
+    {
+        yield return new WaitForEndOfFrame();
+        hasEatenApple = false;
+    }
+
     private void CalculateCameraBounds()
     {
         Camera mainCamera = Camera.main;
@@ -67,7 +98,6 @@ public class SnakeMovement : MonoBehaviour
 
         Vector3 cameraPosition = mainCamera.transform.position;
 
-        // Set the X boundaries using camera width, and Z boundaries using camera height
         xMin = cameraPosition.x - cameraWidth;
         xMax = cameraPosition.x + cameraWidth;
         zMin = cameraPosition.z - cameraHeight;
