@@ -7,7 +7,10 @@ TagManager:
   - SnakeHead
   - BodySegment
   - Food
-  - Pick Up
+  - MapItem
+  - BootItem
+  - YarnItem
+  - ShrinkerItem
   layers:
   - Default
   - TransparentFX

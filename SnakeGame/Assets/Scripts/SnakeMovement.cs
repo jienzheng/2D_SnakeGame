@@ -1,25 +1,28 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class SnakeMovement : MonoBehaviour
 {
     public float moveSpeed = 1f;
-    public float steerSpeed = 1000;
+    public float steerSpeed = 1000f;
     public int Gap = 50;
     public float BodySpeed = 1f;
     public GameObject BodyPrefab;
     public AppleSpawner appleSpawner;
-    public ScoreCounter scoreCounter; // Reference to ScoreCounter script
+    public ScoreCounter scoreCounter;
+    private const float maxCameraSize = 20f; // Maximum camera size
 
     private List<GameObject> BodyParts = new List<GameObject>();
     private List<Vector3> PositionsHistory = new List<Vector3>();
 
     private float xMin, xMax, zMin, zMax;
+    private bool hasEatenApple = false;
 
     void Start()
     {
-        CalculateCameraBounds(); 
+        UpdateCameraBounds(); // Calculate initial camera boundaries
         GrowSnake();
         if (scoreCounter != null)
         {
@@ -58,8 +61,6 @@ public class SnakeMovement : MonoBehaviour
         BodyParts.Add(body);
     }
 
-    private bool hasEatenApple = false;
-
     private void OnTriggerEnter(Collider other)
     {
         if (other.gameObject.CompareTag("Food") && !hasEatenApple)
@@ -71,6 +72,41 @@ public class SnakeMovement : MonoBehaviour
 
             // Reset the flag after a short delay to avoid double-counting
             StartCoroutine(ResetEatenAppleFlag());
+        }
+        if (other.CompareTag("MapItem"))
+        {
+            // Increase camera size but limit it to maxCameraSize
+            if (Camera.main.orthographicSize < maxCameraSize)
+            {
+                Camera.main.orthographicSize += 1;
+                UpdateCameraBounds(); // Update boundaries after the camera size changes
+                Debug.Log("Collected MapItem: Camera size increased.");
+            }
+            else
+            {
+                Debug.Log("Camera size limit reached. Cannot increase further.");
+            }
+            Destroy(other.gameObject);
+        }
+        else if (other.CompareTag("BootItem"))
+        {
+            moveSpeed += 1f;
+            steerSpeed += 50;
+            Debug.Log("Collected BootItem: Speed increased.");
+            Destroy(other.gameObject);
+        }
+        else if (other.CompareTag("YarnItem"))
+        {
+            moveSpeed = Mathf.Max(1, moveSpeed - 0.2f); // Ensure speed doesn’t drop below 1
+            Debug.Log("Collected YarnItem: Speed decreased.");
+            Destroy(other.gameObject);
+        }
+        else if (other.CompareTag("ShrinkerItem"))
+        {
+            int shrinkAmount = Random.Range(1, 5);
+            ShrinkSnake(shrinkAmount);
+            Debug.Log("Collected ShrinkerItem: Snake shrinks by " + shrinkAmount);
+            Destroy(other.gameObject);
         }
     }
 
@@ -90,7 +126,7 @@ public class SnakeMovement : MonoBehaviour
         hasEatenApple = false;
     }
 
-    private void CalculateCameraBounds()
+    public void UpdateCameraBounds()
     {
         Camera mainCamera = Camera.main;
         float cameraHeight = mainCamera.orthographicSize;
@@ -112,4 +148,32 @@ public class SnakeMovement : MonoBehaviour
 
         transform.position = clampedPosition;
     }
+
+    public void ShrinkSnake(int amount)
+    {
+        for (int i = 0; i < amount && BodyParts.Count > 0; i++)
+        {
+            GameObject partToRemove = BodyParts[BodyParts.Count - 1];
+            BodyParts.RemoveAt(BodyParts.Count - 1);
+            Destroy(partToRemove);
+        }
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Wall"))
+        {
+            Debug.Log("Snake hit the wall! Game Over.");
+            EndGame(); // End the game if the snake collides with a wall
+        }
+    }
+
+    private void EndGame()
+    {
+        // Optional: Add any game-over logic here, like pausing or stopping the snake
+        Time.timeScale = 0; // Pause the game
+        SceneManager.LoadScene("GameOver"); // Load the Game Over screen
+    }
+    
+    // Rest of your SnakeMovement code (other methods like Update, GrowSnake, etc.) stays the same
 }
