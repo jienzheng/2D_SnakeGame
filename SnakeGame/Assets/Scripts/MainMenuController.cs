@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class GameOverMenu : MonoBehaviour
+public class Menu : MonoBehaviour
 {
     public void onPlayButton () {
         SceneManager.LoadScene(1);

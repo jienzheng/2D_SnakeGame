@@ -11,6 +11,7 @@ TagManager:
   - BootItem
   - YarnItem
   - ShrinkerItem
+  - Wall
   layers:
   - Default
   - TransparentFX

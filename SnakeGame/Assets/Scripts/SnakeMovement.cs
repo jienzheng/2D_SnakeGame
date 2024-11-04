@@ -19,11 +19,18 @@ public class SnakeMovement : MonoBehaviour
 
     private float xMin, xMax, zMin, zMax;
     private bool hasEatenApple = false;
+    private Dictionary<string, float> itemCooldowns = new Dictionary<string, float>(); // To track cooldowns for each item type
+    private const float itemCooldownTime = 0.5f; // 0.5 seconds cooldown between item triggers
+
+    private float startDelay = 1f; // Delay to prevent immediate game-over due to wall collision
+    private bool canCollideWithWall = false;
 
     void Start()
     {
+        StartCoroutine(EnableWallCollision()); // Start delay for wall collision
         UpdateCameraBounds(); // Calculate initial camera boundaries
         GrowSnake();
+
         if (scoreCounter != null)
         {
             scoreCounter.score = 0; // Initialize the score to 0
@@ -53,6 +60,9 @@ public class SnakeMovement : MonoBehaviour
 
         // Ensure the snake stays within camera boundaries
         KeepWithinCameraBounds();
+
+        // Update cooldowns for items
+        UpdateItemCooldowns();
     }
 
     private void GrowSnake()
@@ -63,23 +73,26 @@ public class SnakeMovement : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.gameObject.CompareTag("Food") && !hasEatenApple)
-        {
-            hasEatenApple = true; // Prevent multiple calls
-            appleSpawner.RemoveApple(); // Remove the eaten apple and spawn a new one
-            GrowSnake(); // Grow the snake by one body part
-            IncreaseScore(); // Add points to the score
+        Debug.Log("Collision detected with: " + other.gameObject.name + " (Tag: " + other.tag + ")");
 
-            // Reset the flag after a short delay to avoid double-counting
+        // Check if the item is on cooldown
+        if (IsItemOnCooldown(other.tag)) return;
+
+        if (other.CompareTag("Food") && !hasEatenApple)
+        {
+            hasEatenApple = true;
+            appleSpawner.RemoveApple();
+            GrowSnake();
+            IncreaseScore();
+            Debug.Log("Collected Food item (chicken): Snake grows.");
             StartCoroutine(ResetEatenAppleFlag());
         }
-        if (other.CompareTag("MapItem"))
+        else if (other.CompareTag("MapItem"))
         {
-            // Increase camera size but limit it to maxCameraSize
             if (Camera.main.orthographicSize < maxCameraSize)
             {
                 Camera.main.orthographicSize += 1;
-                UpdateCameraBounds(); // Update boundaries after the camera size changes
+                UpdateCameraBounds();
                 Debug.Log("Collected MapItem: Camera size increased.");
             }
             else
@@ -87,19 +100,23 @@ public class SnakeMovement : MonoBehaviour
                 Debug.Log("Camera size limit reached. Cannot increase further.");
             }
             Destroy(other.gameObject);
+            SetItemOnCooldown(other.tag);
         }
         else if (other.CompareTag("BootItem"))
         {
-            moveSpeed += 1f;
+            moveSpeed += 1.5f;
             steerSpeed += 50;
+            Gap -= 5;
             Debug.Log("Collected BootItem: Speed increased.");
             Destroy(other.gameObject);
+            SetItemOnCooldown(other.tag);
         }
         else if (other.CompareTag("YarnItem"))
         {
-            moveSpeed = Mathf.Max(1, moveSpeed - 0.2f); // Ensure speed doesn’t drop below 1
+            moveSpeed = Mathf.Max(1, moveSpeed - 0.2f);
             Debug.Log("Collected YarnItem: Speed decreased.");
             Destroy(other.gameObject);
+            SetItemOnCooldown(other.tag);
         }
         else if (other.CompareTag("ShrinkerItem"))
         {
@@ -107,6 +124,12 @@ public class SnakeMovement : MonoBehaviour
             ShrinkSnake(shrinkAmount);
             Debug.Log("Collected ShrinkerItem: Snake shrinks by " + shrinkAmount);
             Destroy(other.gameObject);
+            SetItemOnCooldown(other.tag);
+        }
+        else if (other.gameObject.CompareTag("Wall") && canCollideWithWall)
+        {
+            Debug.Log("Snake hit the wall! Game Over.");
+            SceneManager.LoadScene(2); // Load the Game Over scene
         }
     }
 
@@ -114,9 +137,9 @@ public class SnakeMovement : MonoBehaviour
     {
         if (scoreCounter != null)
         {
-            scoreCounter.score += 50; // Increase score by 50
-            scoreCounter.UpdateScoreText(); // Update the displayed score
-            HighScore.TRY_SET_HIGH_SCORE(scoreCounter.score); // Update high score if applicable
+            scoreCounter.score += 50;
+            scoreCounter.UpdateScoreText();
+            HighScore.TRY_SET_HIGH_SCORE(scoreCounter.score);
         }
     }
 
@@ -124,6 +147,12 @@ public class SnakeMovement : MonoBehaviour
     {
         yield return new WaitForEndOfFrame();
         hasEatenApple = false;
+    }
+
+    private IEnumerator EnableWallCollision()
+    {
+        yield return new WaitForSeconds(startDelay);
+        canCollideWithWall = true; // Enable wall collision after delay
     }
 
     public void UpdateCameraBounds()
@@ -159,21 +188,25 @@ public class SnakeMovement : MonoBehaviour
         }
     }
 
-    private void OnCollisionEnter(Collision collision)
+    // Check if an item is on cooldown
+    private bool IsItemOnCooldown(string itemTag)
     {
-        if (collision.gameObject.CompareTag("Wall"))
-        {
-            Debug.Log("Snake hit the wall! Game Over.");
-            EndGame(); // End the game if the snake collides with a wall
-        }
+        return itemCooldowns.ContainsKey(itemTag) && itemCooldowns[itemTag] > 0;
     }
 
-    private void EndGame()
+    // Set an item on cooldown
+    private void SetItemOnCooldown(string itemTag)
     {
-        // Optional: Add any game-over logic here, like pausing or stopping the snake
-        Time.timeScale = 0; // Pause the game
-        SceneManager.LoadScene("GameOver"); // Load the Game Over screen
+        itemCooldowns[itemTag] = itemCooldownTime;
     }
-    
-    // Rest of your SnakeMovement code (other methods like Update, GrowSnake, etc.) stays the same
+
+    // Update cooldowns for each item type
+    private void UpdateItemCooldowns()
+    {
+        List<string> keys = new List<string>(itemCooldowns.Keys);
+        foreach (string key in keys)
+        {
+            itemCooldowns[key] = Mathf.Max(0, itemCooldowns[key] - Time.deltaTime);
+        }
+    }
 }
