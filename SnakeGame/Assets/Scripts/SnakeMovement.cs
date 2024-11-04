@@ -12,29 +12,24 @@ public class SnakeMovement : MonoBehaviour
     public GameObject BodyPrefab;
     public AppleSpawner appleSpawner;
     public ScoreCounter scoreCounter;
-    private const float maxCameraSize = 20f; // Maximum camera size
+    private const float maxCameraSize = 20f;
 
     private List<GameObject> BodyParts = new List<GameObject>();
     private List<Vector3> PositionsHistory = new List<Vector3>();
 
     private float xMin, xMax, zMin, zMax;
     private bool hasEatenApple = false;
-    private Dictionary<string, float> itemCooldowns = new Dictionary<string, float>(); // To track cooldowns for each item type
-    private const float itemCooldownTime = 0.5f; // 0.5 seconds cooldown between item triggers
-
-    private float startDelay = 1f; // Delay to prevent immediate game-over due to wall collision
-    private bool canCollideWithWall = false;
+    private Dictionary<string, float> itemCooldowns = new Dictionary<string, float>();
+    private const float itemCooldownTime = 0.5f;
 
     void Start()
     {
-        StartCoroutine(EnableWallCollision()); // Start delay for wall collision
-        UpdateCameraBounds(); // Calculate initial camera boundaries
+        UpdateCameraBounds();
         GrowSnake();
-
         if (scoreCounter != null)
         {
-            scoreCounter.score = 0; // Initialize the score to 0
-            scoreCounter.UpdateScoreText(); // Update the displayed score
+            scoreCounter.score = 0;
+            scoreCounter.UpdateScoreText();
         }
     }
 
@@ -73,8 +68,6 @@ public class SnakeMovement : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        Debug.Log("Collision detected with: " + other.gameObject.name + " (Tag: " + other.tag + ")");
-
         // Check if the item is on cooldown
         if (IsItemOnCooldown(other.tag)) return;
 
@@ -126,9 +119,14 @@ public class SnakeMovement : MonoBehaviour
             Destroy(other.gameObject);
             SetItemOnCooldown(other.tag);
         }
-        else if (other.gameObject.CompareTag("Wall") && canCollideWithWall)
+        else if (other.CompareTag("Wall") && gameObject.layer == LayerMask.NameToLayer("Player"))
         {
             Debug.Log("Snake hit the wall! Game Over.");
+            SceneManager.LoadScene("GameOverScene"); // Load your game over scene
+        }
+        else if (other.CompareTag("Bot")) // Check for collision with the bot
+        {
+            Debug.Log("Snake hit the bot! Game Over.");
             SceneManager.LoadScene(2); // Load the Game Over scene
         }
     }
@@ -147,12 +145,6 @@ public class SnakeMovement : MonoBehaviour
     {
         yield return new WaitForEndOfFrame();
         hasEatenApple = false;
-    }
-
-    private IEnumerator EnableWallCollision()
-    {
-        yield return new WaitForSeconds(startDelay);
-        canCollideWithWall = true; // Enable wall collision after delay
     }
 
     public void UpdateCameraBounds()
@@ -188,19 +180,16 @@ public class SnakeMovement : MonoBehaviour
         }
     }
 
-    // Check if an item is on cooldown
     private bool IsItemOnCooldown(string itemTag)
     {
         return itemCooldowns.ContainsKey(itemTag) && itemCooldowns[itemTag] > 0;
     }
 
-    // Set an item on cooldown
     private void SetItemOnCooldown(string itemTag)
     {
         itemCooldowns[itemTag] = itemCooldownTime;
     }
 
-    // Update cooldowns for each item type
     private void UpdateItemCooldowns()
     {
         List<string> keys = new List<string>(itemCooldowns.Keys);
