@@ -8,7 +8,7 @@ public class SnakeMovement : MonoBehaviour
     // Public variables for movement, steering, body gap, and body speed
     public float moveSpeed = 1f;
     public float steerSpeed = 1000f;
-    public int Gap = 50; // Gap between each body part
+    public int Gap = 50; // Gap between each body parts
     public float BodySpeed = 1f;
     public GameObject BodyPrefab; // Prefab for snake body parts
     public FoodSpawner foodSpawner; // Reference to food spawner for removing food
