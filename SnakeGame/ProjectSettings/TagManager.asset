@@ -15,6 +15,7 @@ TagManager:
   - Bot
   - PlayerSnake
   - BotSegment
+  - PlayerBody
   layers:
   - Default
   - TransparentFX
