@@ -27,9 +27,9 @@ public class RandSpawner : MonoBehaviour
         itemProbabilities = new Dictionary<GameObject, float>
         {
             { mapItemPrefab, 0.25f },    // 25% chance to spawn map item
-            { bootItemPrefab, 0.35f },   // 35% chance to spawn boot item
+            { bootItemPrefab, 0.25f },   // 25% chance to spawn boot item
             { yarnItemPrefab, 0.25f },   // 25% chance to spawn yarn item
-            { shrinkerItemPrefab, 0.15f } // 15% chance to spawn shrinker item
+            { shrinkerItemPrefab, 0.25f } // 25% chance to spawn shrinker item
         };
 
         // Start the coroutine for periodic item spawning
@@ -79,8 +79,11 @@ public class RandSpawner : MonoBehaviour
             cumulativeProbability += item.Value;
             if (randomValue <= cumulativeProbability)
             {
-                // Instantiate the selected item at the random position
-                GameObject spawnedItem = Instantiate(item.Key, randomPosition, Quaternion.identity);
+                // Check if the item is the bootItemPrefab, and spawn with default rotation if so
+                Quaternion spawnRotation = item.Key == bootItemPrefab ? Quaternion.identity : Quaternion.Euler(-90f, 0f, 0f);
+
+                // Instantiate the selected item at the random position with the specified rotation
+                GameObject spawnedItem = Instantiate(item.Key, randomPosition, spawnRotation);
                 return spawnedItem;
             }
         }

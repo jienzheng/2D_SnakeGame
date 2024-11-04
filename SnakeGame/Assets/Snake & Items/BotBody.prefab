@@ -120,7 +120,7 @@ GameObject:
   - component: {fileID: 1798458412978789553}
   m_Layer: 8
   m_Name: BotBody
-  m_TagString: BodySegment
+  m_TagString: BotSegment
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

@@ -49,8 +49,8 @@ public class FoodSpawner : MonoBehaviour
             Random.Range(minZ, maxZ)  // Random Z position within bounds
         );
 
-        // Instantiate the food prefab at the calculated random position and store it as the current food
-        currentFood = Instantiate(foodPrefab, randomPosition, Quaternion.identity);
+        // Instantiate the food prefab at the calculated random position with -90 degrees x rotation and 180 degrees z rotation
+        currentFood = Instantiate(foodPrefab, randomPosition, Quaternion.Euler(-90f, 0f, 180f));
     }
 
     public void RemoveFood()
