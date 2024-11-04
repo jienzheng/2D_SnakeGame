@@ -2,65 +2,67 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class AppleSpawner : MonoBehaviour
+public class FoodSpawner : MonoBehaviour
 {
-    public GameObject applePrefab; // Reference to the chicken/apple prefab
-    public Camera mainCamera;      // Reference to the main camera
-    private GameObject currentApple; // Reference to the current chicken/apple in the scene
+    public GameObject foodPrefab; // Reference to the food prefab to be spawned
+    public Camera mainCamera;     // Reference to the main camera for defining spawn boundaries
+    private GameObject currentFood; // Reference to the current food instance in the scene
 
     void Start()
     {
-        SpawnApple();
+        // Spawn initial food when the game starts
+        SpawnFood();
     }
 
-    public void SpawnApple()
+    public void SpawnFood()
     {
-        // Check if an apple already exists
-        if (currentApple != null)
+        // Check if a food item already exists in the scene
+        if (currentFood != null)
         {
-            return; // Do not spawn a new apple if one already exists
+            return; // Do not spawn a new food item if one already exists
         }
 
+        // Check if the main camera is assigned
         if (mainCamera == null)
         {
-            Debug.LogWarning("Main camera not assigned in AppleSpawner.");
+            Debug.LogWarning("Main camera not assigned in FoodSpawner.");
             return;
         }
 
-        // Calculate boundaries based on the camera's orthographic size and aspect ratio
-        float cameraHeight = mainCamera.orthographicSize;
-        float cameraWidth = cameraHeight * mainCamera.aspect;
+        // Calculate the camera's visible area boundaries for spawning the food
+        float cameraHeight = mainCamera.orthographicSize; // Half the height of the camera's view
+        float cameraWidth = cameraHeight * mainCamera.aspect; // Half the width, accounting for aspect ratio
 
-        // Get the camera's position
+        // Get the camera's current position in the world
         Vector3 cameraPosition = mainCamera.transform.position;
 
-        // Define spawn boundaries based on the camera's size and position
+        // Define the spawn boundaries based on the camera's position and calculated width/height
         float minX = cameraPosition.x - cameraWidth;
         float maxX = cameraPosition.x + cameraWidth;
         float minZ = cameraPosition.z - cameraHeight;
         float maxZ = cameraPosition.z + cameraHeight;
 
-        // Generate a random position within these boundaries
+        // Generate a random position within these boundaries for the new food item
         Vector3 randomPosition = new Vector3(
-            Random.Range(minX, maxX), // X position within bounds
-            0.5f,                     // Fixed Y position
-            Random.Range(minZ, maxZ)  // Z position within bounds
+            Random.Range(minX, maxX), // Random X position within bounds
+            0.5f,                     // Fixed Y position for ground level
+            Random.Range(minZ, maxZ)  // Random Z position within bounds
         );
 
-        // Instantiate the apple at the calculated random position and store a reference to it
-        currentApple = Instantiate(applePrefab, randomPosition, Quaternion.identity);
+        // Instantiate the food prefab at the calculated random position and store it as the current food
+        currentFood = Instantiate(foodPrefab, randomPosition, Quaternion.identity);
     }
 
-    public void RemoveApple()
+    public void RemoveFood()
     {
-        // Called when the apple is eaten
-        if (currentApple != null)
+        // Called when the food is eaten
+        if (currentFood != null)
         {
-            Destroy(currentApple);
-            currentApple = null;
+            Destroy(currentFood); // Remove the existing food item
+            currentFood = null; // Clear the reference
         }
 
-        // Spawn a new apple after removing the old one
-        SpawnApple();
+        // Spawn a new food item after removing the old one
+        SpawnFood();
     }
 }

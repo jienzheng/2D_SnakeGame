@@ -13,6 +13,7 @@ TagManager:
   - ShrinkerItem
   - Wall
   - Bot
+  - PlayerSnake
   layers:
   - Default
   - TransparentFX
