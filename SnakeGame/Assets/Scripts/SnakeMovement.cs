@@ -165,6 +165,12 @@ public class SnakeMovement : MonoBehaviour
             Debug.Log("Player snake hit the bot! Game Over.");
             SceneManager.LoadScene(2); // Load Game Over scene
         }
+        else if (other.CompareTag("BotSegment") && this.CompareTag("PlayerSnake"))
+        {
+            // Game over if the player hits any segment of the bot
+            Debug.Log("Player hit the bot segment! Game Over.");
+            SceneManager.LoadScene(2); // Load the Game Over scene
+        }
     }
 
     private void IncreaseScore()
