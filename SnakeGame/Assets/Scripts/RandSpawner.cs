@@ -14,80 +14,76 @@ public class RandSpawner : MonoBehaviour
     private GameObject currentItem; // Holds the reference to the currently spawned item
     private Camera mainCamera; // Reference to the main camera for determining spawn bounds
     private Dictionary<GameObject, float> itemProbabilities; // Dictionary to hold each item's probability
+    public LayerMask Wall; // LayerMask for walls to avoid spawning near them
+    public float minDistanceFromWall = 0.5f; // Minimum distance from walls for spawning items
 
     private void Start()
     {
-        // Set mainCamera to Camera.main if not manually assigned
-        if (mainCamera == null)
-        {
-            mainCamera = Camera.main;
-        }
+        if (mainCamera == null) mainCamera = Camera.main;
 
         // Initialize item probabilities for each prefab
         itemProbabilities = new Dictionary<GameObject, float>
         {
-            { mapItemPrefab, 0.25f },    // 25% chance to spawn map item
-            { bootItemPrefab, 0.25f },   // 25% chance to spawn boot item
-            { yarnItemPrefab, 0.25f },   // 25% chance to spawn yarn item
-            { shrinkerItemPrefab, 0.25f } // 25% chance to spawn shrinker item
+            { mapItemPrefab, 0.25f },
+            { bootItemPrefab, 0.25f },
+            { yarnItemPrefab, 0.25f },
+            { shrinkerItemPrefab, 0.25f }
         };
 
         // Start the coroutine for periodic item spawning
         StartCoroutine(SpawnItem());
     }
 
-    // Coroutine to handle timed item spawning
     private IEnumerator SpawnItem()
     {
         while (true)
         {
-            // Wait for the specified spawn interval
             yield return new WaitForSeconds(spawnInterval);
 
-            // Destroy the existing item, if present
-            if (currentItem != null)
-            {
-                Destroy(currentItem);
-            }
+            if (currentItem != null) Destroy(currentItem);
 
             // Spawn a new random item within the camera's view bounds
             currentItem = SpawnRandomItemWithinCamera();
         }
     }
 
-    // Method to spawn a random item within the camera's bounds
     private GameObject SpawnRandomItemWithinCamera()
     {
-        // Calculate the camera's boundaries for spawning
         float cameraHeight = mainCamera.orthographicSize;
         float cameraWidth = cameraHeight * mainCamera.aspect;
 
-        // Generate a random position within these bounds
-        Vector3 randomPosition = new Vector3(
-            Random.Range(mainCamera.transform.position.x - cameraWidth, mainCamera.transform.position.x + cameraWidth),
-            0.5f, // Y position is set to match the ground level
-            Random.Range(mainCamera.transform.position.z - cameraHeight, mainCamera.transform.position.z + cameraHeight)
-        );
+        Vector3 randomPosition;
+        bool validPosition;
 
-        // Select a random item based on predefined probabilities
-        float randomValue = Random.value; // Generates a value between 0 and 1
+        do
+        {
+            validPosition = true;
+            randomPosition = new Vector3(
+                Random.Range(mainCamera.transform.position.x - cameraWidth, mainCamera.transform.position.x + cameraWidth),
+                0.5f,
+                Random.Range(mainCamera.transform.position.z - cameraHeight, mainCamera.transform.position.z + cameraHeight)
+            );
+
+            // Check for walls within minDistanceFromWall
+            Collider[] colliders = Physics.OverlapSphere(randomPosition, minDistanceFromWall, Wall);
+            if (colliders.Length > 0) validPosition = false;
+
+        } while (!validPosition);
+
+        float randomValue = Random.value;
         float cumulativeProbability = 0f;
 
-        // Loop through each item and check against cumulative probability
         foreach (var item in itemProbabilities)
         {
             cumulativeProbability += item.Value;
             if (randomValue <= cumulativeProbability)
             {
-                // Check if the item is the bootItemPrefab, and spawn with default rotation if so
                 Quaternion spawnRotation = item.Key == bootItemPrefab ? Quaternion.identity : Quaternion.Euler(-90f, 0f, 0f);
-
-                // Instantiate the selected item at the random position with the specified rotation
                 GameObject spawnedItem = Instantiate(item.Key, randomPosition, spawnRotation);
                 return spawnedItem;
             }
         }
 
-        return null; // Fallback, though ideally never reached if probabilities sum to 1
+        return null;
     }
 }

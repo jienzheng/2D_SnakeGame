@@ -7,6 +7,7 @@ public class FoodSpawner : MonoBehaviour
     public GameObject foodPrefab; // Reference to the food prefab to be spawned
     public Camera mainCamera;     // Reference to the main camera for defining spawn boundaries
     private GameObject currentFood; // Reference to the current food instance in the scene
+    public LayerMask Wall;        // Layer mask for walls to avoid spawning food inside
 
     void Start()
     {
@@ -30,27 +31,46 @@ public class FoodSpawner : MonoBehaviour
         }
 
         // Calculate the camera's visible area boundaries for spawning the food
-        float cameraHeight = mainCamera.orthographicSize; // Half the height of the camera's view
-        float cameraWidth = cameraHeight * mainCamera.aspect; // Half the width, accounting for aspect ratio
+        float cameraHeight = mainCamera.orthographicSize;
+        float cameraWidth = cameraHeight * mainCamera.aspect;
 
-        // Get the camera's current position in the world
         Vector3 cameraPosition = mainCamera.transform.position;
+        float margin = 0.5f; // Margin to keep food away from walls
 
-        // Define the spawn boundaries based on the camera's position and calculated width/height
-        float minX = cameraPosition.x - cameraWidth;
-        float maxX = cameraPosition.x + cameraWidth;
-        float minZ = cameraPosition.z - cameraHeight;
-        float maxZ = cameraPosition.z + cameraHeight;
+        float minX = cameraPosition.x - cameraWidth + margin;
+        float maxX = cameraPosition.x + cameraWidth - margin;
+        float minZ = cameraPosition.z - cameraHeight + margin;
+        float maxZ = cameraPosition.z + cameraHeight - margin;
 
-        // Generate a random position within these boundaries for the new food item
-        Vector3 randomPosition = new Vector3(
-            Random.Range(minX, maxX), // Random X position within bounds
-            0.5f,                     // Fixed Y position for ground level
-            Random.Range(minZ, maxZ)  // Random Z position within bounds
-        );
+        bool validPositionFound = false;
+        Vector3 randomPosition = Vector3.zero;
 
-        // Instantiate the food prefab at the calculated random position with -90 degrees x rotation and 180 degrees z rotation
-        currentFood = Instantiate(foodPrefab, randomPosition, Quaternion.Euler(-90f, 0f, 180f));
+        // Try multiple times to find a valid position
+        for (int attempts = 0; attempts < 10 && !validPositionFound; attempts++)
+        {
+            // Generate a random position within the defined boundaries
+            randomPosition = new Vector3(
+                Random.Range(minX, maxX),
+                0.5f, // Fixed Y position for ground level
+                Random.Range(minZ, maxZ)
+            );
+
+            // Check for any overlap with walls using a small sphere cast
+            if (!Physics.CheckSphere(randomPosition, margin, Wall))
+            {
+                validPositionFound = true; // Found a valid spot
+            }
+        }
+
+        if (validPositionFound)
+        {
+            // Instantiate the food at the calculated random position with the specified rotation
+            currentFood = Instantiate(foodPrefab, randomPosition, Quaternion.Euler(-90f, 0f, 180f));
+        }
+        else
+        {
+            Debug.LogWarning("Could not find a valid position to spawn food away from walls.");
+        }
     }
 
     public void RemoveFood()
