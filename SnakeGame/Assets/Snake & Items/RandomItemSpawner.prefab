@@ -44,8 +44,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b9ca3a4fbaf2b4e55a36856353a97fd2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mapItemPrefab: {fileID: 1155342664605638856, guid: 9b6deb03f6f0b45eebe45ef43a28befd, type: 3}
-  bootItemPrefab: {fileID: 1132050348136589497, guid: 71d35a45444884d0aaa55efa21f6ed75, type: 3}
-  yarnItemPrefab: {fileID: 4806666391308822574, guid: 910dccb7de4c14a4db67d5ece5dfb65f, type: 3}
-  shrinkerItemPrefab: {fileID: 6293528373605542997, guid: f796586caf9d24dbab3e77f86bf4de8d, type: 3}
+  mapItemPrefab: {fileID: 809443171048538124, guid: 9b6deb03f6f0b45eebe45ef43a28befd, type: 3}
+  bootItemPrefab: {fileID: 8322924232892491611, guid: d57fa14ce9ecb4e4e9ae18318a7c3f24, type: 3}
+  yarnItemPrefab: {fileID: 2973819214762609089, guid: 910dccb7de4c14a4db67d5ece5dfb65f, type: 3}
+  shrinkerItemPrefab: {fileID: 4431662635092603057, guid: f796586caf9d24dbab3e77f86bf4de8d, type: 3}
   spawnInterval: 10
+  Wall:
+    serializedVersion: 2
+    m_Bits: 0
+  minDistanceFromWall: 0.5

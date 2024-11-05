@@ -1081,10 +1081,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: SnakeHead
       objectReference: {fileID: 0}
-    - target: {fileID: 277381284140149822, guid: e86d93dbdc7e443cea9ee0fb1dc9b249, type: 3}
-      propertyPath: m_TagString
-      value: PlayerSnake
-      objectReference: {fileID: 0}
     - target: {fileID: 8031171742550791549, guid: e86d93dbdc7e443cea9ee0fb1dc9b249, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -1134,33 +1130,9 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 65097921}
     - target: {fileID: 8825831332947153497, guid: e86d93dbdc7e443cea9ee0fb1dc9b249, type: 3}
-      propertyPath: appleSpawner
-      value: 
-      objectReference: {fileID: 65097921}
-    - target: {fileID: 8825831332947153497, guid: e86d93dbdc7e443cea9ee0fb1dc9b249, type: 3}
       propertyPath: scoreCounter
       value: 
       objectReference: {fileID: 1614615597}
-    - target: {fileID: 8825831332947153497, guid: e86d93dbdc7e443cea9ee0fb1dc9b249, type: 3}
-      propertyPath: gameOverSound
-      value: 
-      objectReference: {fileID: 8300000, guid: e406d9a1853b64b4387e676daee9a63f, type: 3}
-    - target: {fileID: 8825831332947153497, guid: e86d93dbdc7e443cea9ee0fb1dc9b249, type: 3}
-      propertyPath: eatChickenSound
-      value: 
-      objectReference: {fileID: 8300000, guid: 439fe791947e44d308299d10a084dd31, type: 3}
-    - target: {fileID: 8825831332947153497, guid: e86d93dbdc7e443cea9ee0fb1dc9b249, type: 3}
-      propertyPath: specialItemSound
-      value: 
-      objectReference: {fileID: 8300000, guid: 3c8b4628c47e149638c31285a94e7e1e, type: 3}
-    - target: {fileID: 8980344960334603556, guid: e86d93dbdc7e443cea9ee0fb1dc9b249, type: 3}
-      propertyPath: m_Size.x
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 8980344960334603556, guid: e86d93dbdc7e443cea9ee0fb1dc9b249, type: 3}
-      propertyPath: m_IsTrigger
-      value: 1
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
